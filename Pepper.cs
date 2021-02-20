@@ -13,6 +13,7 @@ using Qmmands;
 
 using Pepper.Classes;
 using Pepper.Classes.Command;
+using Pepper.Services.FGO;
 using Pepper.Services.Monitoring;
 using Pepper.Services.Monitoring.Log;
 using Pepper.External.Osu;
@@ -37,6 +38,7 @@ namespace Pepper
 
             // initialize services
             _services.GetRequiredService<Services.Main.CommandService>().PrepareCommands();
+            _services.GetRequiredService<MasterDataService>().PrintMasterDataStatistics();
 
             // log into Discord
             _client.Ready += OnReadyEvent;
@@ -99,6 +101,7 @@ namespace Pepper
                 .AddSingleton(Configure())
                 .AddSingleton(_client)
                 .AddSingleton<LogService>()
+                .AddSingleton<MasterDataService>()
                 .AddSingleton(commandService)
                 .AddSingleton(interactivity)
                 .AddSingleton<Services.Main.CommandService>()
