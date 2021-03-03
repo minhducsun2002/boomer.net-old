@@ -28,9 +28,9 @@ namespace Pepper.Commands.Osu
 
             // check for global ranks
             // if the rank equals the default value, it means the field hasn't been assigned (null values in the source JSON)
-            var rank = stats.Rank.Global.Equals(default)
+            var rank = stats.GlobalRank.Equals(default)
                 ? ""
-                : $" (#**{stats.Rank.Global}** globally | #**{stats.Rank.Country}** in :flag_{user.Country.Code.ToLowerInvariant()}:)";
+                : $" (#**{stats.GlobalRank}** globally | #**{stats.CountryRank}** in :flag_{user.Country.Code.ToLowerInvariant()}:)";
             var grades = stats.GradeCounts; 
             var playTime = new TimeSpan((long) stats.PlayTime * (long) 1e7);
 

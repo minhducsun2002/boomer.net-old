@@ -29,21 +29,6 @@ namespace Pepper.External.Osu
     }
 
     /// <summary>
-    /// Ranking of user in leaderboards.
-    /// </summary>
-    public struct UserRank
-    {
-        /// <summary>
-        /// Ranking in the global leaderboard
-        /// </summary>
-        [JsonProperty("global")] public long Global;
-        /// <summary>
-        /// Ranking in the leaderboard of user country
-        /// </summary>
-        [JsonProperty("country")] public long Country;
-    }
-
-    /// <summary>
     /// Rank counts in all ranked plays. 
     /// </summary>
     public struct UserScoreGrades
@@ -104,7 +89,8 @@ namespace Pepper.External.Osu
         /// <summary>
         /// Ranking in global/country leaderboards.
         /// </summary>
-        [JsonProperty("rank", NullValueHandling = NullValueHandling.Include)] public UserRank Rank;
+        [JsonProperty("global_rank")] public ulong GlobalRank;
+        [JsonProperty("country_rank")] public ulong CountryRank;
     }
     
     public struct User
