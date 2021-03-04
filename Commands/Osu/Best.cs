@@ -6,6 +6,7 @@ using Interactivity;
 using osu.Game.Beatmaps.Legacy;
 using Pepper.Classes;
 using Pepper.Classes.Command;
+using Pepper.Classes.Command.Result;
 using Pepper.External.Osu;
 using Pepper.Utilities;
 using Pepper.Utilities.Osu;
@@ -20,7 +21,7 @@ namespace Pepper.Commands.Osu
         [PrefixCategory("osu")]
         [Category("osu!")]
         [Description("Show top plays of an user.")]
-        public async Task Exec(
+        public async Task<PepperCommandResult> Exec(
             [Flag("/")] GameMode gameMode = GameMode.Osu,
             [Flag("/limit=", "/limit:")] int limit = 50,
             [Flag("/mod=", "/mod:")] string mods = "",
@@ -82,13 +83,15 @@ namespace Pepper.Commands.Osu
                     },
                     Fields = chunk.ToList()
                 }.Build());
-            
-            await HandlePagedOutput(
-                embeds.ToArray(),
-                new EmbedBuilder
+
+            return new EmbedResult
+            {
+                Embeds = embeds.ToArray(),
+                NoEmbed = new EmbedBuilder
                 {
                     Description = $"No top play found for user [**{username}**](https://osu.ppy.sh/users/{user.Id})"
-                }.Build());
+                }.Build()
+            };
         }
     }
 }

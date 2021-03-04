@@ -7,6 +7,7 @@ using Qmmands;
 
 using Pepper.Classes;
 using Pepper.Classes.Command;
+using Pepper.Classes.Command.Result;
 using Pepper.External.Osu;
 using Pepper.Utilities.Osu;
 
@@ -18,7 +19,7 @@ namespace Pepper.Commands.Osu
         [PrefixCategory("osu")]
         [Category("osu!")]
         [Description("Show information about a player.")]
-        public async Task Exec(
+        public async Task<PepperCommandResult> Exec(
             [Flag("/")] GameMode gameMode = GameMode.Osu,
             [Remainder] string username = ""
         )
@@ -78,25 +79,29 @@ namespace Pepper.Commands.Osu
                 );
             }
 
-
-            await Context.Channel.SendMessageAsync(
-                "",
-                false,
-                new EmbedBuilder
-                    {
-                        Title = $"[{stats.Level.Current}] {user.Username}",
-                        Url = $"https://osu.ppy.sh/users/{user.Id}",
-                        ThumbnailUrl = Uri.IsWellFormedUriString(user.AvatarUrl, UriKind.Absolute) ? user.AvatarUrl : null,
-                        Color = Color.Green,
-                        Description = (
+            return new EmbedResult
+            {
+                Embeds = new[]
+                {
+                    new EmbedBuilder
+                        {
+                            Title = $"[{stats.Level.Current}] {user.Username}",
+                            Url = $"https://osu.ppy.sh/users/{user.Id}",
+                            ThumbnailUrl = Uri.IsWellFormedUriString(user.AvatarUrl, UriKind.Absolute)
+                                ? user.AvatarUrl
+                                : null,
+                            Color = Color.Green,
+                            Description = (
                                 $"**{stats.PerformancePoints}**pp{rank}."
-                                + $"\nTotal accuracy : **{stats.HitAccuracy:0.000}%** | Max combo : **{stats.MaximumCombo}**x" 
+                                + $"\nTotal accuracy : **{stats.HitAccuracy:0.000}%** | Max combo : **{stats.MaximumCombo}**x"
                                 + $"\nJoined {user.JoinedDate.ToUniversalTime().ToString("dd/MM/yyyy, hh:mm:ss tt 'UTC'", CultureInfo.InvariantCulture)}."
                             ),
-                        Fields = fields
-                    }
-                    .Build()
-            );
+                            Fields = fields
+                        }
+                        .Build()
+                },
+                NoEmbed = null
+            };
         }
     }
 }

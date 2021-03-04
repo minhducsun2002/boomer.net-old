@@ -11,6 +11,7 @@ using Qmmands;
 
 using Pepper.Classes;
 using Pepper.Classes.Command;
+using Pepper.Classes.Command.Result;
 using Pepper.External.Osu;
 using Pepper.Utilities;
 using Pepper.Utilities.Osu;
@@ -25,7 +26,7 @@ namespace Pepper.Commands.Osu
         [PrefixCategory("osu")]
         [Category("osu!")]
         [Description("Show information of a beatmap(set).")]
-        public async Task Exec(
+        public async Task<PepperCommandResult> Exec(
             string beatmapId,
             [Flag("/set")] bool isMapset = false
         )
@@ -134,48 +135,57 @@ namespace Pepper.Commands.Osu
                                     }.Build()
                                 );
                         });
-                    var paginator = EmbedUtilities.PagedEmbedBuilder()
-                        .WithPages(embeds.Select(PageBuilder.FromEmbed))
-                        .Build();
-                    await InteractivityService.SendPaginatorAsync(paginator, Context.Channel, TimeSpan.FromSeconds(20));
-                    break;
+
+                    return new EmbedResult
+                    {
+                        Embeds = embeds.ToArray(),
+                        NoEmbed = null
+                    };
                 }
                 case false:
                 {
                     var map = mapset.Beatmaps.Concat(mapset.Converts).First(beatmap => beatmap.Id == id);
-                    var embed = new EmbedBuilder
+                    return new EmbedResult
+                    {
+                        Embeds = new[]
                         {
-                            Title = $"{embedTitle} [{map.Version}]",
-                            Url = $"https://osu.ppy.sh/beatmapsets/{mapset.Id}#{map.GameModeInt.ToUrlPath()}/{id}",
-                            ImageUrl = imageUrl,
-                            Description =
-                                $"Mapped by **[{mapset.Creator}](https://osu.ppy.sh/users/{mapset.CreatorId})**. "
-                                + (mapset.RankedDate.HasValue ? "\nRanked" : $"{status}\nLast updated")
-                                + $" **{lastChangedDate}**.",
-                            Fields = new List<EmbedFieldBuilder>
-                            {
-                                new EmbedFieldBuilder
+                            new EmbedBuilder
                                 {
-                                    Name = "Difficulty",
-                                    Value = $"{map.StarRating} :star: - {SerializationUtilities.SerializeStats(map)} - {map.BeatPerMinute} BPM"
-                                },
-                                new EmbedFieldBuilder
-                                {
-                                    Name = "Length",
-                                    Value = $"{(map.MaxCombo > 0 ? $"**{map.MaxCombo}**x | " : "")} {SerializationUtilities.SerializeTimeLength(map.DrainLength)}",
-                                    IsInline = true
-                                },
-                                new EmbedFieldBuilder
-                                {
-                                    Name = "Game mode",
-                                    Value = map.GameModeInt.ToFriendlyName(),
-                                    IsInline = true
+                                    Title = $"{embedTitle} [{map.Version}]",
+                                    Url =
+                                        $"https://osu.ppy.sh/beatmapsets/{mapset.Id}#{map.GameModeInt.ToUrlPath()}/{id}",
+                                    ImageUrl = imageUrl,
+                                    Description =
+                                        $"Mapped by **[{mapset.Creator}](https://osu.ppy.sh/users/{mapset.CreatorId})**. "
+                                        + (mapset.RankedDate.HasValue ? "\nRanked" : $"{status}\nLast updated")
+                                        + $" **{lastChangedDate}**.",
+                                    Fields = new List<EmbedFieldBuilder>
+                                    {
+                                        new EmbedFieldBuilder
+                                        {
+                                            Name = "Difficulty",
+                                            Value =
+                                                $"{map.StarRating} :star: - {SerializationUtilities.SerializeStats(map)} - {map.BeatPerMinute} BPM"
+                                        },
+                                        new EmbedFieldBuilder
+                                        {
+                                            Name = "Length",
+                                            Value =
+                                                $"{(map.MaxCombo > 0 ? $"**{map.MaxCombo}**x | " : "")} {SerializationUtilities.SerializeTimeLength(map.DrainLength)}",
+                                            IsInline = true
+                                        },
+                                        new EmbedFieldBuilder
+                                        {
+                                            Name = "Game mode",
+                                            Value = map.GameModeInt.ToFriendlyName(),
+                                            IsInline = true
+                                        }
+                                    }
                                 }
-                            }
-                        }
-                        .Build();
-                    await Context.Channel.SendMessageAsync("", false, embed);
-                    break;
+                                .Build()
+                        },
+                        NoEmbed = null
+                    };
                 }
             }
         }

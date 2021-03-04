@@ -7,6 +7,7 @@ using osu.Game.Rulesets.Osu.Difficulty;
 using osu.Game.Scoring;
 using Pepper.Classes;
 using Pepper.Classes.Command;
+using Pepper.Classes.Command.Result;
 using Pepper.External.Osu;
 using Pepper.External.Osu.UserExtra;
 using Pepper.Utilities;
@@ -19,7 +20,7 @@ namespace Pepper.Commands.Osu
     {
         [Command("pp")]
         [Category("osu!")]
-        public async Task Exec(
+        public async Task<PepperCommandResult> Exec(
             ulong mapId,
             [Flag("/mod:", "/mod=")] string mods = "",
             double accuracy = 100.0,
@@ -75,59 +76,64 @@ namespace Pepper.Commands.Osu
                     $"(**{diffAttributes.AimStrain:F3}** aim | **{diffAttributes.SpeedStrain:F3}** speed)";
             
             var mapStats = SerializationUtilities.SerializeStats(baseDifficulty);
-            
-            await Context.Channel.SendMessageAsync(
-                "",
-                false,
-                new EmbedBuilder
-                    {
-                        Author = new EmbedAuthorBuilder
+
+            return new EmbedResult
+            {
+                Embeds = new[]
+                {
+                    new EmbedBuilder
                         {
-                            Name = beatmapMeta.Author.Username 
-                        },
-                        ImageUrl = $"https://assets.ppy.sh/beatmaps/{beatmapInfo.BeatmapSet.ID}/covers/cover@2x.jpg",
-                        Title = $"{beatmapMeta.Artist} - {beatmapMeta.TitleUnicode ?? beatmapMeta.Title} [{beatmapInfo.Version}]",
-                        Fields = new List<EmbedFieldBuilder>
-                        {
-                            new EmbedFieldBuilder
+                            Author = new EmbedAuthorBuilder
                             {
-                                Name = $@"Difficulty {
-                                    (modList.Length > 0
-                                        ? $"(before {string.Join("", modList.Select(mod => mod.Acronym.ToUpperInvariant()))})"
-                                        : "")   
-                                }",
-                                Value = extraStarRating.Length > 0
-                                    ? $"{mapStats}\n**{beatmapDifficultyAttributes.StarRating:F3}**★ {extraStarRating}"
-                                    : $"**{beatmapDifficultyAttributes.StarRating:F3}**★ | {mapStats}"
+                                Name = beatmapMeta.Author.Username
                             },
-                            new EmbedFieldBuilder
+                            ImageUrl =
+                                $"https://assets.ppy.sh/beatmaps/{beatmapInfo.BeatmapSet.ID}/covers/cover@2x.jpg",
+                            Title =
+                                $"{beatmapMeta.Artist} - {beatmapMeta.TitleUnicode ?? beatmapMeta.Title} [{beatmapInfo.Version}]",
+                            Fields = new List<EmbedFieldBuilder>
                             {
-                                Name = "PP",
-                                Value = $"{performanceCalculator.Calculate():F4}",
-                                IsInline = true
-                            },
-                            new EmbedFieldBuilder
-                            {
-                                Name = "Statistics",
-                                Value = string.Join(
-                                    " - ",
-                                    new List<string>
-                                    {
-                                        $@"**{maxCombo}**x{(
-                                            maxCombo == beatmapDifficultyAttributes.MaxCombo
-                                                ? $"/**{beatmapDifficultyAttributes.MaxCombo}**x"
-                                                : " (FC)"
-                                        )}",
-                                        $"**{accuracy / 100 * 100:F2}**%",
-                                        $"{miss} miss{StringUtilities.Plural(miss, "es")}"
-                                    }
-                                ),
-                                IsInline = true
+                                new EmbedFieldBuilder
+                                {
+                                    Name = $@"Difficulty {
+                                            (modList.Length > 0
+                                                ? $"(before {string.Join("", modList.Select(mod => mod.Acronym.ToUpperInvariant()))})"
+                                                : "")
+                                        }",
+                                    Value = extraStarRating.Length > 0
+                                        ? $"{mapStats}\n**{beatmapDifficultyAttributes.StarRating:F3}**★ {extraStarRating}"
+                                        : $"**{beatmapDifficultyAttributes.StarRating:F3}**★ | {mapStats}"
+                                },
+                                new EmbedFieldBuilder
+                                {
+                                    Name = "PP",
+                                    Value = $"{performanceCalculator.Calculate():F4}",
+                                    IsInline = true
+                                },
+                                new EmbedFieldBuilder
+                                {
+                                    Name = "Statistics",
+                                    Value = string.Join(
+                                        " - ",
+                                        new List<string>
+                                        {
+                                            $@"**{maxCombo}**x{(
+                                                maxCombo == beatmapDifficultyAttributes.MaxCombo
+                                                    ? $"/**{beatmapDifficultyAttributes.MaxCombo}**x"
+                                                    : " (FC)"
+                                            )}",
+                                            $"**{accuracy / 100 * 100:F2}**%",
+                                            $"{miss} miss{StringUtilities.Plural(miss, "es")}"
+                                        }
+                                    ),
+                                    IsInline = true
+                                }
                             }
                         }
-                    }
-                    .Build()
-            );
+                        .Build()
+                },
+                NoEmbed = null
+            };
         }
     }
 }

@@ -7,12 +7,14 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Interactivity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualBasic;
 using Qmmands;
 using QmmandsCommandService = Qmmands.CommandService;
 
 using Pepper.Classes.Command;
+using Pepper.Classes.Command.Result;
 using Pepper.Classes;
 using Pepper.Services.Monitoring;
 using Pepper.Services.Monitoring.Log;
@@ -28,6 +30,7 @@ namespace Pepper.Services.Main
         public readonly QmmandsCommandService InnerCommandService;
         private readonly IServiceProvider _services;
         private readonly LogService _log;
+        private readonly InteractivityService _interactivityService;
 
         // command prefixes
         // prefix => prefixCategory[]
@@ -46,6 +49,7 @@ namespace Pepper.Services.Main
             InnerCommandService = serv.GetRequiredService<QmmandsCommandService>();
             PrefixConfiguration = serv.GetRequiredService<PepperConfiguration>().Prefix.ToImmutableDictionary();
             _log = serv.GetRequiredService<LogService>();
+            _interactivityService = serv.GetRequiredService<InteractivityService>();
 
             /*
              * prepare command prefixes
@@ -78,6 +82,7 @@ namespace Pepper.Services.Main
             
             // register handlers
             InnerCommandService.CommandExecutionFailed += HandleErrors;
+            InnerCommandService.CommandExecuted += HandleResult;
 
             // register parsers
             InnerCommandService.AddTypeParser(GameModeTypeParser.Instance, true);
@@ -197,6 +202,32 @@ namespace Pepper.Services.Main
                         }
                         .Build()
                 );
+        }
+
+        private async Task HandleResult(CommandExecutedEventArgs executedEventArgs)
+        {
+            var result = executedEventArgs.Result;
+            var context = executedEventArgs.Context as PepperCommandContext;
+            switch (result)
+            {
+                case EmbedResult embedResult:
+                {
+                    var embeds = embedResult.Embeds;
+                    if (embeds.Length > 1)
+                        await _interactivityService.SendPaginatorAsync(
+                            EmbedUtilities.PagedEmbedBuilder()
+                                .WithPages(embeds.Select(PageBuilder.FromEmbed))
+                                .Build(),
+                            context.Channel,
+                            TimeSpan.FromSeconds(20)
+                        );
+                    
+                    else
+                        await context.Channel.SendMessageAsync("", false, embeds.Any() ? embeds[0] : embedResult.NoEmbed);
+                    
+                    break;
+                }
+            }
         }
         
         private static async Task HandleErrors(CommandExecutionFailedEventArgs failed)

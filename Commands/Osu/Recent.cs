@@ -5,6 +5,7 @@ using Discord;
 using Interactivity;
 using Pepper.Classes;
 using Pepper.Classes.Command;
+using Pepper.Classes.Command.Result;
 using Pepper.External.Osu;
 using Pepper.Utilities;
 using Pepper.Utilities.Osu;
@@ -20,7 +21,7 @@ namespace Pepper.Commands.Osu
         [PrefixCategory("osu")]
         [Category("osu!")]
         [Description("Show recent plays of an user.")]
-        public async Task Exec(
+        public async Task<PepperCommandResult> Exec(
             [Flag("/")] GameMode gameMode = GameMode.Osu,
             [Flag("/limit=")] int limit = 20,
             [Flag("/failed", "/f")] bool failed = false,
@@ -64,12 +65,13 @@ namespace Pepper.Commands.Osu
                         .Build()
                 )
                 .ToArray();
-            await HandlePagedOutput(
-                embeds,
-                new EmbedBuilder()
+            return new EmbedResult
+            {
+                Embeds = embeds,
+                NoEmbed = new EmbedBuilder()
                     .WithDescription($"No recent play found for user [**{username}**](${userLink})")
-                    .Build()
-            );
+                    .Build() 
+            };
         }
 
         private async Task<EmbedFieldBuilder[]> RecentNormalMode(External.Osu.User user, GameMode gameMode, int limit)

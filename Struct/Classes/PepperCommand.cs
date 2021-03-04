@@ -9,24 +9,7 @@ using Pepper.Utilities;
 
 namespace Pepper.Classes
 {
-    public abstract class PepperCommand : ModuleBase<PepperCommandContext>
-    {
-        public InteractivityService InteractivityService { get; set; }
-        protected async Task HandlePagedOutput(Embed[] embeds, Embed noEmbed)
-        {
-            if (embeds.Length > 1)
-            {
-                var paginator = EmbedUtilities.PagedEmbedBuilder()
-                    .WithPages(embeds.Select(PageBuilder.FromEmbed))
-                    .Build();
-                await InteractivityService.SendPaginatorAsync(paginator, Context.Channel, TimeSpan.FromSeconds(20));
-            }
-            else
-            {
-                await Context.Channel.SendMessageAsync("", false, embeds.Any() ? embeds[0] : noEmbed);
-            }
-        }
-    }
+    public abstract class PepperCommand : ModuleBase<PepperCommandContext> {}
 
     namespace Command
     {
