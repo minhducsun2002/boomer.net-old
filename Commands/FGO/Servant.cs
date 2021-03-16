@@ -74,32 +74,44 @@ namespace Pepper.Commands.FGO
                             new EmbedFieldBuilder
                             {
                                 Name = "Cards / Damage distribution by %",
-                                Value = string.Join('\n', new string[]
-                                {
+                                Value = string.Join('\n',
                                     "```",
                                     "   Card   | Hit counts",
                                     string.Join(
-                                        '\n',
-                                        cards.Select(card
-                                            => string.Join(
-                                                "",
-                                                $@"{card.Value}x ",
-                                                Trait.ResolveTrait(card.Key + 4000).PadRight(
-                                                    cards.Keys.Select(k => Trait.ResolveTrait(k + 4000).Length).Max()
-                                                ),
-                                                $" | {damageDistributions[card.Key - 1].Length}", $" ({string.Join('-', damageDistributions[card.Key - 1])})")
+                                    '\n',
+                                    cards.Select(card
+                                        => string.Join(
+                                            "",
+                                            $@"{card.Value}x ",
+                                            Trait.ResolveTrait(card.Key + 4000).PadRight(
+                                                cards.Keys.Select(k => Trait.ResolveTrait(k + 4000).Length).Max()
+                                            ),
+                                            $" | {damageDistributions[card.Key - 1].Length}", $" ({string.Join('-', damageDistributions[card.Key - 1])})")
                                         )
                                     ),
                                     "```"
-                                })
+                                )
                             }
                         )
+                        .Build(),
+                    GetBaseServantEmbedBuilder(limits, @class, mstSvt, mstSvtNA.Name)
+                        .WithFields(new EmbedFieldBuilder
+                        {
+                            Name = "Traits",
+                            Value = string.Join(
+                                '\n',
+                                mstSvt.Individuality
+                                    // ignore class - self - gender traits
+                                    .Where(i => !new []{ mstSvt.ID, mstSvt.GenderType, mstSvt.ClassId + 99 }.Contains(i))
+                                    .Select(i => $"* **{Trait.ResolveTrait(i)}**")
+                            )
+                        })
                         .Build()
                 }
             };
         }
 
-        private EmbedBuilder GetBaseServantEmbedBuilder(MstSvtLimit[] limits, MstClass @class, MstSvt mstSvt, string nameOverwrite = "") => new EmbedBuilder
+        private static EmbedBuilder GetBaseServantEmbedBuilder(IEnumerable<MstSvtLimit> limits, MstClass @class, MstSvt mstSvt, string nameOverwrite = "") => new EmbedBuilder
         {
             Author = new EmbedAuthorBuilder
             {
