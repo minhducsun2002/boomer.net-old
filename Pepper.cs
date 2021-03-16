@@ -39,6 +39,7 @@ namespace Pepper
             // initialize services
             _services.GetRequiredService<Services.Main.CommandService>().PrepareCommands();
             _services.GetRequiredService<MasterDataService>().PrintMasterDataStatistics();
+            _services.GetRequiredService<TraitService>().LoadMapping();
 
             // log into Discord
             _client.Ready += OnReadyEvent;
@@ -48,7 +49,7 @@ namespace Pepper
             await Task.Delay(-1);
         }
     
-        private Task OnReadyEvent ()
+        private Task OnReadyEvent()
         {
             // unregister handler
             _client.Ready -= OnReadyEvent;
@@ -100,6 +101,7 @@ namespace Pepper
             return new ServiceCollection()
                 .AddSingleton(Configure())
                 .AddSingleton(_client)
+                .AddSingleton<TraitService>()
                 .AddSingleton<LogService>()
                 .AddSingleton<MasterDataService>()
                 .AddSingleton(commandService)

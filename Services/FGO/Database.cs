@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 using Pepper.Classes;
+using Pepper.External.FGO.Master;
 using Pepper.Services.Monitoring;
 using Pepper.Services.Monitoring.Log;
 using Pepper.Utilities;
@@ -16,20 +19,29 @@ namespace Pepper.Services.FGO
         NA = 1<<1 
     }
     
-    public class MasterDataService
+    public partial class MasterDataService
     {
         private readonly LogService _log;
-        public readonly MongoClient Client;
+        private readonly MongoClient _client;
+
+        private Dictionary<Region, Dictionary<string, Dictionary<string, object>>> cache =
+            new Dictionary<Region, Dictionary<string, Dictionary<string, object>>>();
 
         public MasterDataService(IServiceProvider serv)
         {
             _log = serv.GetRequiredService<LogService>();
             var config = serv.GetRequiredService<PepperConfiguration>();
 
+            // always ignore extra elements
+            ConventionRegistry.Register(
+                "IgnoreExtraElements",
+                new ConventionPack { new IgnoreExtraElementsConvention(true) },
+                type => true
+            );
             // TODO : change configuration files
             // since mongoose reads DB name from URI, it was necessary to have separate entries
             // mongo on its own doesn't, we only need a single entry
-            Client = new MongoClient(config.Database.FGO.MasterDataConnectionUri.Values.First());
+            _client = new MongoClient(config.Database.FGO.MasterDataConnectionUri.Values.First());
         }
 
         public async void PrintMasterDataStatistics()
@@ -38,8 +50,9 @@ namespace Pepper.Services.FGO
             {
                 var region = Enum.Parse<Region>(regionCode);
                 if (region == Region.None) continue;
+                cache[region] = new Dictionary<string, Dictionary<string, object>>();
 
-                var db = Client.GetDatabase(regionCode);
+                var db = _client.GetDatabase(regionCode);
                 var collections = await db.ListCollectionsAsync();
                 await collections.MoveNextAsync();
                 var collectionCount = collections.Current.Count();
@@ -54,5 +67,13 @@ namespace Pepper.Services.FGO
                 );
             }
         }
+
+        private void EnsureCollectionName(string name)
+        {
+            foreach (var region in cache.Keys.Where(region => !cache[region].ContainsKey(name)))
+                cache[region][name] = new Dictionary<string, object>();
+        }
+        
+        public static string ResolveRegionCode(Region region) => Enum.GetName(typeof(Region), region);
     }
 }

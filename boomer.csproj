@@ -9,6 +9,7 @@
     <PackageReference Include="Discord.InteractivityAddon" Version="2.4.0-dev-20210218.1" />
     <PackageReference Include="Discord.NET" Version="2.3.0-dev-20201214.8" />
     <PackageReference Include="dotenv.net" Version="2.1.1" />
+    <PackageReference Include="fgo-enums" Version="2.29.2" />
     <PackageReference Include="FuzzySharp" Version="2.0.2" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.29" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />
@@ -23,5 +24,4 @@
     <PackageReference Include="ppy.osu.Game.Rulesets.Taiko" Version="2021.129.0" />
     <PackageReference Include="Qmmands" Version="3.1.2" />
   </ItemGroup>
-
 </Project>
