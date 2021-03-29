@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pepper
+  labels:
+    name: pepper-next
+    app: pepper
+spec:
+  selector:
+    matchLabels:
+      app: pepper
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pepper
+    spec:
+      containers:
+        - name: pepper
+          image: minhducsun2002/pepper.net:latest
+          imagePullPolicy: Always
+          env:
+          - name: DISCORD_TOKEN
+            value: '$DISCORD_TOKEN'
+          - name: OSU_API_KEY
+            value: '$OSU_API_KEY'
+          - name: FGO_TRAIT_MAPPINGS
+            value: '$FGO_TRAIT_MAPPINGS'
